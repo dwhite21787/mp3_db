@@ -5,11 +5,12 @@ use Getopt::Std;
 
 use vars qw( $opt_d $opt_f $opt_v $filename $invoked $fingerprint $m_title $m_artist $m_album $i_title $i_artist $i_album );
 
-getopts("d:f:v") or die "Usage: $0 -d database -f filename -v\n";
-( $opt_d && $opt_f ) or die "Usage: $0 -d database -f filename -v\n";
+getopts("d:f:m:v") or die "Usage: $0 -d database -f filename -m media -v\n";
+( $opt_d && $opt_f ) or die "Usage: $0 -d database -f filename -m media -v\n";
 
 (-e "$opt_f") or die "$0 : file \"$opt_f\" not found.\n";
 (-e "$opt_d") or die "$0 : database \"$opt_d\" not found.\n";
+(-e "$opt_m") or die "$0 : no media designation used.\n";
 
 print STDERR "$0 : $opt_f\n";
 
@@ -57,15 +58,17 @@ $m_title =~ s/\'/\'\'/g ;
 $i_title =~ s/\'/\'\'/g ;
 
 my $fullpath = $opt_f;
+my $media = $opt_m;
 my $bytes = -s "$opt_f" ;
 my $sha = `shasum "$opt_f"`;
 $sha = lc(substr($sha,0,40));
 $fullpath =~ s/\'/\'\'/g ;
+$media =~ s/\'/\'\'/g ;
 
 # print STDERR "sqlite3 \"$opt_d\" \"INSERT INTO metadata (filename ,invoked ,fingerprint ,m_title ,m_artist ,m_album ,i_title ,i_artist ,i_album) VALUES ('$filename','$invoked','$fingerprint','$m_title','$m_artist','$m_album','$i_title','$i_artist','$i_album');\" \n";
 my $ret;
-$ret = `sqlite3 "$opt_d" "INSERT INTO storage (fullpath ,bytes ,sha ) VALUES ('$fullpath',$bytes,'$sha');"`; 
-my $sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha';"`;
+$ret = `sqlite3 "$opt_d" "INSERT INTO storage (fullpath ,bytes ,sha, media ) VALUES ('$fullpath',$bytes,'$sha','$media');"`; 
+my $sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha' and media = '$media';"`;
 # print STDERR "sid $sid\n";
 chomp $sid;
 $ret = `sqlite3 "$opt_d" "INSERT INTO metadata (storage_id ,invoked ,fingerprint ,m_title ,m_artist ,m_album ,i_title ,i_artist ,i_album) VALUES ($sid,'$invoked','$fingerprint','$m_title','$m_artist','$m_album','$i_title','$i_artist','$i_album');"`; 
