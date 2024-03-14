@@ -1,0 +1,22 @@
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE IF NOT EXISTS "storage" (
+	"storage_id"	INTEGER NOT NULL UNIQUE,
+	"fullpath"	TEXT NOT NULL UNIQUE,
+	"bytes"	INTEGER NOT NULL,
+	"sha"	TEXT NOT NULL,
+	PRIMARY KEY("storage_id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "metadata" (
+	"metadata_id"	INTEGER NOT NULL UNIQUE,
+	"storage_id"	INTEGER,
+	"invoked"	TEXT NOT NULL,
+	"fingerprint"	TEXT NOT NULL,
+	"m_title"	TEXT,
+	"m_artist"	TEXT,
+	"m_album"	TEXT,
+	"i_title"	TEXT,
+	"i_artist"	TEXT,
+	"i_album"	TEXT,
+	FOREIGN KEY("storage_id") REFERENCES "storage"("storage_id"),
+	PRIMARY KEY("metadata_id" AUTOINCREMENT)
+);
