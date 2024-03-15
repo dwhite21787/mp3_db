@@ -83,9 +83,17 @@ my $magic = `file -b -p "$opt_f"`;
 chomp $magic;
 $magic =~ s/\'/\'\'/g ;
 
+# is this file already in the database?
+#
+my $sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha' and media = '$media';"`;
+chomp $sid;
+if (($sid ne '') && ($sid > 0)) { print STDERR "file known in database.\n"; exit; }
+
+# put data in database
+#
 my $ret;
 $ret = `sqlite3 "$opt_d" "INSERT INTO storage (fullpath ,bytes ,sha, media, magic) VALUES ('$fullpath',$bytes,'$sha','$media','$magic');"`; 
-my $sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha' and media = '$media';"`;
+$sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha' and media = '$media';"`;
 # print STDERR "sid $sid\n";
 chomp $sid;
 $ret = `sqlite3 "$opt_d" "INSERT INTO metadata (storage_id ,invoked ,fingerprint ,m_title ,m_artist ,m_album ,i_title ,i_artist ,i_album) VALUES ($sid,'$invoked','$fingerprint','$m_title','$m_artist','$m_album','$i_title','$i_artist','$i_album');"`; 
