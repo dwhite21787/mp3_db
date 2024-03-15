@@ -15,9 +15,10 @@ getopts("d:f:m:v") or die "Usage: $0 -d database -f filename -m media -v\n";
 print STDERR "$0 : $opt_f\n";
 
 # which sqlite3
-# which fpcalc
+# which fpcalc (1.5.1 or above)
 # which mp3info
-# which id3v2
+# which mid3v2
+# which file (must use -b and -p switches)
 
 # fingerprint the file
 #
@@ -78,7 +79,7 @@ $sha = lc(substr($sha,0,40));
 
 # get the magic header info
 #
-my $magic = `file "$opt_f"`;
+my $magic = `file -b -p "$opt_f"`;
 chomp $magic;
 $magic =~ s/\'/\'\'/g ;
 
