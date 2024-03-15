@@ -19,12 +19,16 @@ print STDERR "$0 : $opt_f\n";
 # which mp3info
 # which id3v2
 
+# fingerprint the file
+#
 my $fp = `fpcalc -length 120 -chunk 120 -rate 32767 -channels 2 -raw -signed -algorithm 3 "$opt_f"`;
 chomp $fp;
-my @f = split(/\n/,$fp);
-(! $opt_v) || print STDERR "parts : ",scalar(@f), "\n";
+# my @f = split(/\n/,$fp);
+# (! $opt_v) || print STDERR "parts : ",scalar(@f), "\n";
 (! $opt_v) || print STDERR substr($fp, 0, 75) , "\n";
 
+# get old MP3 tags
+#
 my $mpi = `mp3info -p "%a\t%l\t%t\n" "$opt_f"`;
 chomp $mpi;
 my @m = split(/\t/,$mpi);
@@ -32,6 +36,8 @@ if ($#m == 2) { (! $opt_v) || print "m_artist : $m[0]\nm_album : $m[1]\nm_title 
 # else { print STDERR "too few mp3info fields\n"; }
 if ($mpi =~ /^$/) { @m = ('','',''); }
 
+# get new MP3 tags
+#
 my $idi = `mid3v2 -l "$opt_f" | grep -e '^TALB' -e '^TIT' -e '^TPE1' | sort`;
 chomp $idi;
 my @i = split(/\n/,$idi);
@@ -39,6 +45,8 @@ if ($#i == 2) { (! $opt_v) || print "i_album : ", substr($i[0],5), "\ni_title : 
 # else { print STDERR "too few mid3v2 fields\n"; }
 if ($idi =~ /^$/) { @i = ('','',''); }
 
+# prep the strings for insert
+#
 my @fn=split(/\//,$opt_f);
 $filename = $fn[$#fn] ; 
 $filename =~ s/\'/\'\'/g ;
@@ -60,14 +68,22 @@ $i_title =~ s/\'/\'\'/g ;
 my $fullpath = $opt_f;
 my $media = $opt_m;
 my $bytes = -s "$opt_f" ;
-my $sha = `shasum "$opt_f"`;
-$sha = lc(substr($sha,0,40));
 $fullpath =~ s/\'/\'\'/g ;
 $media =~ s/\'/\'\'/g ;
 
-# print STDERR "sqlite3 \"$opt_d\" \"INSERT INTO metadata (filename ,invoked ,fingerprint ,m_title ,m_artist ,m_album ,i_title ,i_artist ,i_album) VALUES ('$filename','$invoked','$fingerprint','$m_title','$m_artist','$m_album','$i_title','$i_artist','$i_album');\" \n";
+# calculate the file SHA1
+#
+my $sha = `shasum "$opt_f"`;
+$sha = lc(substr($sha,0,40));
+
+# get the magic header info
+#
+my $magic = `file "$opt_f"`;
+chomp $magic;
+$magic =~ s/\'/\'\'/g ;
+
 my $ret;
-$ret = `sqlite3 "$opt_d" "INSERT INTO storage (fullpath ,bytes ,sha, media ) VALUES ('$fullpath',$bytes,'$sha','$media');"`; 
+$ret = `sqlite3 "$opt_d" "INSERT INTO storage (fullpath ,bytes ,sha, media, magic) VALUES ('$fullpath',$bytes,'$sha','$media','$magic');"`; 
 my $sid = `sqlite3 "$opt_d" "SELECT storage_id from storage WHERE fullpath = '$fullpath' and sha = '$sha' and media = '$media';"`;
 # print STDERR "sid $sid\n";
 chomp $sid;
