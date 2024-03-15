@@ -3,14 +3,14 @@
 use strict;
 use Getopt::Std;
 
-use vars qw( $opt_d $opt_f $opt_v $filename $invoked $fingerprint $m_title $m_artist $m_album $i_title $i_artist $i_album );
+use vars qw( $opt_d $opt_f $opt_m $opt_v $filename $invoked $fingerprint $m_title $m_artist $m_album $i_title $i_artist $i_album );
 
 getopts("d:f:m:v") or die "Usage: $0 -d database -f filename -m media -v\n";
 ( $opt_d && $opt_f ) or die "Usage: $0 -d database -f filename -m media -v\n";
 
 (-e "$opt_f") or die "$0 : file \"$opt_f\" not found.\n";
 (-e "$opt_d") or die "$0 : database \"$opt_d\" not found.\n";
-(-e "$opt_m") or die "$0 : no media designation used.\n";
+($opt_m) or die "$0 : no media designation used.\n";
 
 print STDERR "$0 : $opt_f\n";
 
